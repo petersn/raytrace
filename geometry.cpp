@@ -1,6 +1,6 @@
-// Sphere object.
+// Geometries.
 
-#include "sphere.h"
+#include "geometry.h"
 
 Sphere::Sphere(Vec center, Real radius) : center(center), radius(radius) {
 }

@@ -1,11 +1,12 @@
-// Sphere object.
+// Geometries.
 
-#ifndef _SPHERE_H
-#define _SPHERE_H
+#ifndef _GEOMETRY_H
+#define _GEOMETRY_H
 
 #include "tracer.h"
 
-class Sphere : Thingum {
+class Sphere : public Thingum {
+public:
 	Vec center;
 	Real radius;
 
