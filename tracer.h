@@ -69,8 +69,8 @@ public:
 
 	World();
 	bool cast_test(const Ray& ray, RayCollision* hit);
-	Color illuminate_point(RayCollision& p);
-	Color color_ray(const Ray& ray);
+	Color illuminate_point(RayCollision& p, int recursions);
+	Color color_ray(const Ray& ray, int recursions);
 	void render(Canvas* canv);
 };
 

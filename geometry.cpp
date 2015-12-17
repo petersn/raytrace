@@ -28,3 +28,30 @@ bool Sphere::cast_test(const Ray& ray, RayCollision* hit) {
 	return true;
 }
 
+Plane::Plane(Real parameter, Vec _normal) : parameter(parameter), normal(_normal) {
+	normal.normalize();
+}
+
+Plane::Plane(Vec contains, Vec normal) : normal(normal) {
+	normal.normalize();
+	parameter = normal.dot(contains);
+}
+
+bool Plane::cast_test(const Ray& ray, RayCollision* hit) {
+	Real origin_height = normal.dot(ray.origin) - parameter;
+	if (origin_height < 0)
+		return false;
+	Real rate = -normal.dot(ray.direction);
+	if (rate <= 0)
+		return false;
+	Real approach_distance = origin_height / rate; 
+	if (hit != nullptr) {
+		hit->hit = ray.origin + ray.direction * approach_distance;
+		hit->incoming = ray.direction;
+		hit->normal = normal;
+		hit->reflection = (ray.direction - 2 * normal * normal.dot(ray.direction)).normalized();
+		hit->thingum = this;	
+	}
+	return true;
+}
+

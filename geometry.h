@@ -14,5 +14,15 @@ public:
 	bool cast_test(const Ray& ray, RayCollision* hit);
 };
 
+class Plane : public Thingum {
+public:
+	Real parameter;
+	Vec normal;
+
+	Plane(Real parameter, Vec normal);
+	Plane(Vec contains, Vec normal);
+	bool cast_test(const Ray& ray, RayCollision* hit);
+};
+
 #endif
 

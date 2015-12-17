@@ -18,7 +18,9 @@ LambertianScatter::LambertianScatter(Real _amplitude) {
 
 Color LambertianScatter::modulate_contribution(Light* light, Color color, const RayCollision& hit) const {
 	Vec to_light = (light->position - hit.hit).normalized();
-	return -hit.incoming.dot(to_light) * color;
+	Real v1 = hit.normal.dot(to_light);
+//	Real v2 = -hit.normal.dot(hit.incoming);
+	return v1 * color;
 }
 
 PhongHighlight::PhongHighlight(Real _amplitude) {
@@ -27,8 +29,8 @@ PhongHighlight::PhongHighlight(Real _amplitude) {
 
 Color PhongHighlight::modulate_contribution(Light* light, Color color, const RayCollision& hit) const {
 	Vec to_light = (light->position - hit.hit).normalized();
-	Real value = -hit.incoming.dot(to_light);
-	return square(square(value)) * color;
+	Real value = max(0.0, hit.reflection.dot(to_light));
+	return square(square(square(value))) * color;
 }
 
 Canvas::Canvas(int _width, int _height) : width(_width), height(_height), gain(255.0) {
