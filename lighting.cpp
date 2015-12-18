@@ -1,6 +1,7 @@
 // Lighting.
 
 #include <png.h>
+#include <assert.h>
 #include "lighting.h"
 
 OmnidirectionalLight::OmnidirectionalLight(Vec _position, Color color) : color(color) {
@@ -36,20 +37,58 @@ Color PhongHighlight::modulate_contribution(Light* light, Color color, const Ray
 Canvas::Canvas(int _width, int _height) : width(_width), height(_height), gain(255.0) {
 	size = width * height;
 	pixels = new Color[size];
+	depth_buffer = new Real[size];
 }
 
 Canvas::~Canvas() {
 	delete[] pixels;
+	delete[] depth_buffer;
+}
+
+void Canvas::zero() {
+	for (int i = 0; i < width * height; i++)
+		pixels[i] = Vec(0, 0, 0);
 }
 
 Color* Canvas::pixel_ptr(int x, int y) {
 	return pixels + (x + y * width);
 }
 
+Real* Canvas::depth_ptr(int x, int y) {
+	return depth_buffer + (x + y * width);
+}
+
 void Canvas::get_pixel(int x, int y, uint8_t* dest) {
 	Color c = pixels[x + y * width];
 	for (int i = 0; i < 3; i++)
 		dest[i] = (uint8_t)max(0.0, min(255.0, (Real)(c(i) * gain)));
+}
+
+void apply_depth_of_field_effect(Canvas* source, Canvas* dest, Real pof_depth, Real dispersion_factor) {
+	assert(source->width == dest->width and source->height == dest->height);
+	int width = source->width, height = source->height;
+	Real MAX_DISPERSION = 20.0;
+	// Zero out the destination array.
+	dest->zero();
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			// Figure out the appropriate coloring.
+			Color color = source->pixels[x + y * width];
+			Real depth = source->depth_buffer[x + y * width];
+			Real dispersion = min(MAX_DISPERSION, abs(depth - pof_depth) * dispersion_factor);
+			int dispersion_distance = max(1, (int)dispersion);
+			Real normalization = 1.0/square(dispersion_distance);
+			for (int x_offset = -dispersion_distance/2; x_offset < (dispersion_distance+1)/2; x_offset++) {
+				for (int y_offset = -dispersion_distance/2; y_offset < (dispersion_distance+1)/2; y_offset++) {
+					int target_x = max(0, min(width-1, x + x_offset));
+					int target_y = max(0, min(height-1, y + y_offset));
+					// Only affect deeper pixels -- you can't blur across someone closer to you.
+					if (source->depth_buffer[target_x + target_y * width] >= depth)
+						dest->pixels[target_x + target_y * width] += color * normalization;
+				}
+			}
+		}
+	}
 }
 
 // This function basically entirely based on: http://www.lemoda.net/c/write-png/

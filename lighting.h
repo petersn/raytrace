@@ -45,13 +45,18 @@ public:
 	int width, height, size;
 	Real gain;
 	Color* pixels;
+	Real* depth_buffer;
 
 	Canvas(int width, int height);
 	~Canvas();
+	void zero();
 	Color* pixel_ptr(int x, int y);
+	Real* depth_ptr(int x, int y);
 	void get_pixel(int x, int y, uint8_t* dest);
 	int save(std::string path);
 };
+
+void apply_depth_of_field_effect(Canvas* source, Canvas* dest, Real pof_depth, Real dispersion_factor);
 
 #endif
 

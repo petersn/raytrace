@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 
 	// Make a world with one sphere in it.
 	World* w = new World();
-	w->clear_color = Color(0.02, 0.08, 0.2) * 0.0;
+	w->clear_color = Color(0.02, 0.08, 0.2) * 0.0; //1.2;
 
 	Sphere* sphere1 = new Sphere(Vec(1,1,3), 0.4);
 	sphere1->material_models.push_back(new LambertianScatter(0.5));
@@ -65,8 +65,10 @@ int main(int argc, char** argv) {
 
 	cout << "=== Ray tracing ===" << endl;
 	Canvas* canv = new Canvas(1920 * 1, 1080 * 1);//1366, 768);
+	Canvas* final_canv = new Canvas(1920 * 1, 1080 * 1);
 	w->render(canv);
-	canv->save("output.png");
+	apply_depth_of_field_effect(canv, final_canv, 2, 3.5);
+	final_canv->save("output.png");
 	return 0;
 
 //*

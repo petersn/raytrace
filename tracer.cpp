@@ -68,7 +68,7 @@ Color World::illuminate_point(RayCollision& hit, int recursions) {
 	// Test if we should recursively color based on an ideal reflection
 	if (recursions > 0) {
 		Ray bounce(hit.hit, hit.reflection);
-		Color recursive_color = color_ray(bounce, recursions-1);
+		Color recursive_color = color_ray(bounce, recursions-1, nullptr);
 		result += recursive_color * 1.0;
 	}
 	// Also recurse Lambertianly.
@@ -85,14 +85,18 @@ Color World::illuminate_point(RayCollision& hit, int recursions) {
 	return result;
 }
 
-Color World::color_ray(const Ray& ray, int recursions) {
+Color World::color_ray(const Ray& ray, int recursions, Real* depth_information) {
 	RayCollision hit;
 	bool success = cast_test(ray, &hit);
 	if (success) {
+		if (depth_information != nullptr)
+			*depth_information = (hit.hit - ray.origin).norm();
 		return illuminate_point(hit, recursions);
 //		Real amp = 1.0 / square((hit.hit - camera.origin).norm());
 //		return Vec(amp, amp, amp);
 	} else {
+		if (depth_information != nullptr)
+			*depth_information = INFINITY;
 		return clear_color;
 	}
 }
@@ -101,7 +105,7 @@ void World::render(Canvas* canv) {
 	Real aspect_ratio = canv->width / (Real)canv->height;
 	Real scale = 1.3;
 
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int x = 0; x < canv->width; x++) {
 		for (int y = 0; y < canv->height; y++) {			
 			Ray test_ray = camera;
@@ -113,7 +117,7 @@ void World::render(Canvas* canv) {
 			test_ray.direction(1) = (y_dev - 0.5) * scale;
 			test_ray.direction.normalize();
 
-			pixel = color_ray(test_ray, 4);
+			pixel = color_ray(test_ray, 4, canv->depth_ptr(x, y));
 		}
 	}
 }
