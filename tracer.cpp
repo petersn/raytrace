@@ -69,7 +69,7 @@ Color World::illuminate_point(RayCollision& hit, int recursions) {
 	if (recursions > 0) {
 		Ray bounce(hit.hit, hit.reflection);
 		Color recursive_color = color_ray(bounce, recursions-1);
-		result += recursive_color * 0.5;
+		result += recursive_color * 1.0;
 	}
 	// Also recurse Lambertianly.
 	/*
@@ -99,20 +99,21 @@ Color World::color_ray(const Ray& ray, int recursions) {
 
 void World::render(Canvas* canv) {
 	Real aspect_ratio = canv->width / (Real)canv->height;
-	Ray test_ray = camera;
+	Real scale = 1.3;
 
-	Real x_dev, y_dev;
+	#pragma omp parallel for
 	for (int x = 0; x < canv->width; x++) {
 		for (int y = 0; y < canv->height; y++) {			
+			Ray test_ray = camera;
 			Color& pixel = *canv->pixel_ptr(x, y);
-			x_dev = x / (Real)canv->width;
-			y_dev = y / (Real)canv->height;
+			Real x_dev = x / (Real)canv->width;
+			Real y_dev = y / (Real)canv->height;
 
-			test_ray.direction(0) = (x_dev - 0.5) * aspect_ratio;
-			test_ray.direction(1) = (y_dev - 0.5);
+			test_ray.direction(0) = (x_dev - 0.5) * aspect_ratio * scale;
+			test_ray.direction(1) = (y_dev - 0.5) * scale;
 			test_ray.direction.normalize();
 
-			pixel = color_ray(test_ray, 1);
+			pixel = color_ray(test_ray, 4);
 		}
 	}
 }

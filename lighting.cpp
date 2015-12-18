@@ -30,7 +30,7 @@ PhongHighlight::PhongHighlight(Real _amplitude) {
 Color PhongHighlight::modulate_contribution(Light* light, Color color, const RayCollision& hit) const {
 	Vec to_light = (light->position - hit.hit).normalized();
 	Real value = max(0.0, hit.reflection.dot(to_light));
-	return square(square(square(value))) * color;
+	return square(square(square(square(value)))) * color;
 }
 
 Canvas::Canvas(int _width, int _height) : width(_width), height(_height), gain(255.0) {
