@@ -64,14 +64,15 @@ int main(int argc, char** argv) {
 	w->lights.push_back(light3);
 
 	cout << "=== Ray tracing ===" << endl;
-	Canvas* canv = new Canvas(1920 * 1, 1080 * 1);//1366, 768);
-	Canvas* final_canv = new Canvas(1920 * 1, 1080 * 1);
-	w->render(canv);
-	apply_depth_of_field_effect(canv, final_canv, 2, 3.5);
-	final_canv->save("output.png");
+	Canvas* canv = new Canvas(1920 / 1, 1080 / 1);//1366, 768);
+	//Canvas* final_canv = new Canvas(1920 / 1, 1080 * 1);
+	w->render(canv, 4, 0.6, 5.0);
+	//apply_depth_of_field_effect(canv, final_canv, 3.5, 25.0);
+	//final_canv->save("real_DOF_output.png");
+	canv->save("real_DOF_output.png");
 	return 0;
 
-//*
+/*
 	// Generate a canvas
 	//for (int i = offset; i < 200; i += step) {
 //	#pragma omp parallel for
@@ -91,7 +92,7 @@ int main(int argc, char** argv) {
 			cout.flush();
 		}
 	}
-//*/
+// */
 
 	// Clean up.
 	delete w;

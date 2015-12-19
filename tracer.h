@@ -71,7 +71,7 @@ public:
 	bool cast_test(const Ray& ray, RayCollision* hit);
 	Color illuminate_point(RayCollision& p, int recursions);
 	Color color_ray(const Ray& ray, int recursions, Real* depth_information);
-	void render(Canvas* canv);
+	void render(Canvas* canv, int bundle_width, Real dispersion, Real pof_depth);
 };
 
 #endif

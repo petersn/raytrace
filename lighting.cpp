@@ -67,7 +67,7 @@ void Canvas::get_pixel(int x, int y, uint8_t* dest) {
 void apply_depth_of_field_effect(Canvas* source, Canvas* dest, Real pof_depth, Real dispersion_factor) {
 	assert(source->width == dest->width and source->height == dest->height);
 	int width = source->width, height = source->height;
-	Real MAX_DISPERSION = 20.0;
+	Real MAX_DISPERSION = 50.0;
 	// Zero out the destination array.
 	dest->zero();
 	for (int x = 0; x < width; x++) {
@@ -76,6 +76,7 @@ void apply_depth_of_field_effect(Canvas* source, Canvas* dest, Real pof_depth, R
 			Color color = source->pixels[x + y * width];
 			Real depth = source->depth_buffer[x + y * width];
 			Real dispersion = min(MAX_DISPERSION, abs(depth - pof_depth) * dispersion_factor);
+//			dispersion = 50.0;
 			int dispersion_distance = max(1, (int)dispersion);
 			Real normalization = 1.0/square(dispersion_distance);
 			for (int x_offset = -dispersion_distance/2; x_offset < (dispersion_distance+1)/2; x_offset++) {
@@ -83,12 +84,20 @@ void apply_depth_of_field_effect(Canvas* source, Canvas* dest, Real pof_depth, R
 					int target_x = max(0, min(width-1, x + x_offset));
 					int target_y = max(0, min(height-1, y + y_offset));
 					// Only affect deeper pixels -- you can't blur across someone closer to you.
-					if (source->depth_buffer[target_x + target_y * width] >= depth)
+//					if (source->depth_buffer[target_x + target_y * width] >= depth)
 						dest->pixels[target_x + target_y * width] += color * normalization;
 				}
 			}
 		}
 	}
+	/*
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			Real depth = source->depth_buffer[x + y * width];
+			dest->pixels[x + y * width] = Vec(depth/5.0, depth/5.0, depth/5.0);
+		}
+	}
+	// */
 }
 
 // This function basically entirely based on: http://www.lemoda.net/c/write-png/

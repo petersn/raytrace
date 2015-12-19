@@ -74,14 +74,14 @@ Color World::illuminate_point(RayCollision& hit, int recursions) {
 	// Also recurse Lambertianly.
 	/*
 	if (recursions > 0) {
-		for (int i = 0; i < 40; i++) {
-			Vec random_direction = hit.normal + (Vec::Random() * 0.5);
+		for (int i = 0; i < 50; i++) {
+			Vec random_direction = hit.normal + (Vec::Random() * 0.8);
 			Ray bounce(hit.hit, random_direction);
-			Color recursive_color = color_ray(bounce, recursions-1);
-			result += recursive_color / 40.0;
+			Color recursive_color = color_ray(bounce, recursions-1, nullptr);
+			result += recursive_color / 20.0;
 		}
 	}
-	*/
+	//*/
 	return result;
 }
 
@@ -101,23 +101,33 @@ Color World::color_ray(const Ray& ray, int recursions, Real* depth_information) 
 	}
 }
 
-void World::render(Canvas* canv) {
+void World::render(Canvas* canv, int bundle_width, Real dispersion, Real pof_depth) {
 	Real aspect_ratio = canv->width / (Real)canv->height;
-	Real scale = 1.3;
+	Real scale = 1.1;
+	Real normalization = 1.0 / square(2 * bundle_width + 1);
 
-	//#pragma omp parallel for
+	#pragma omp parallel for
 	for (int x = 0; x < canv->width; x++) {
-		for (int y = 0; y < canv->height; y++) {			
+		for (int y = 0; y < canv->height; y++) {
 			Ray test_ray = camera;
 			Color& pixel = *canv->pixel_ptr(x, y);
-			Real x_dev = x / (Real)canv->width;
-			Real y_dev = y / (Real)canv->height;
+			for (int bundle_x = -bundle_width; bundle_x < bundle_width+1; bundle_x++) {
+				for (int bundle_y = -bundle_width; bundle_y < bundle_width+1; bundle_y++) {
+					Real x_dev = x / (Real)canv->width;
+					Real y_dev = y / (Real)canv->height;
 
-			test_ray.direction(0) = (x_dev - 0.5) * aspect_ratio * scale;
-			test_ray.direction(1) = (y_dev - 0.5) * scale;
-			test_ray.direction.normalize();
+					Real dispersion_x = (dispersion * bundle_x) / (Real) (2*bundle_width+1);
+					Real dispersion_y = (dispersion * bundle_y) / (Real) (2*bundle_width+1);
 
-			pixel = color_ray(test_ray, 4, canv->depth_ptr(x, y));
+					test_ray.origin(0) = camera.origin(0) + dispersion_x;
+					test_ray.origin(1) = camera.origin(1) + dispersion_y;
+
+					test_ray.direction(0) = (x_dev - 0.5) * aspect_ratio * scale - dispersion_x / pof_depth;
+					test_ray.direction(1) = (y_dev - 0.5) * scale - dispersion_y / pof_depth;
+					test_ray.direction.normalize();
+					pixel += color_ray(test_ray, 4, canv->depth_ptr(x, y)) * normalization;
+				}
+			}
 		}
 	}
 }
